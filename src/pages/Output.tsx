@@ -6,12 +6,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Brain, ArrowLeft, Copy, Download, RefreshCw, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { InteractiveQuiz } from "@/components/InteractiveQuiz";
 
 interface AIOutput {
   summary?: { short: string; long: string; bullets: string[] };
   quiz?: { mcqs: any[]; trueFalse: any[]; shortQuestions: any[] };
   questions?: { five_mark: string[]; ten_mark: string[]; fifteen_mark: string[] };
   flashcards?: { term: string; definition: string; concept: string }[];
+}
+
+interface UserAnswers {
+  [key: string]: string | boolean;
 }
 
 const Output = () => {
@@ -22,6 +27,8 @@ const Output = () => {
   const [outputs, setOutputs] = useState<AIOutput>({});
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState<string | null>(null);
+  const [userAnswers, setUserAnswers] = useState<UserAnswers>({});
+  const [showResults, setShowResults] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -58,6 +65,22 @@ const Output = () => {
         outputMap[output.output_type as keyof AIOutput] = output.content as any;
       });
       setOutputs(outputMap);
+
+      // Auto-generate all content if none exists
+      if (!aiData || aiData.length === 0) {
+        toast({
+          title: "Generating AI content...",
+          description: "Please wait while we create your study materials",
+        });
+        
+        // Generate all content types
+        await Promise.all([
+          generateContent("summary"),
+          generateContent("quiz"),
+          generateContent("questions"),
+          generateContent("flashcards")
+        ]);
+      }
     } catch (error: any) {
       toast({
         title: "Error loading data",
@@ -70,6 +93,8 @@ const Output = () => {
   };
 
   const generateContent = async (type: string) => {
+    if (generating) return; // Prevent multiple simultaneous generations
+    
     setGenerating(type);
     try {
       const { error } = await supabase.functions.invoke("generate-ai-content", {
@@ -80,10 +105,23 @@ const Output = () => {
 
       toast({
         title: "Generated!",
-        description: `${type} has been created`,
+        description: `${type} created successfully`,
       });
 
-      await loadData();
+      // Reload just this content type
+      const { data: aiData } = await supabase
+        .from("ai_outputs")
+        .select("*")
+        .eq("pdf_id", id)
+        .eq("output_type", type)
+        .single();
+
+      if (aiData) {
+        setOutputs(prev => ({
+          ...prev,
+          [type]: aiData.content
+        }));
+      }
     } catch (error: any) {
       toast({
         title: "Generation failed",
@@ -93,6 +131,36 @@ const Output = () => {
     } finally {
       setGenerating(null);
     }
+  };
+
+  const handleAnswerChange = (questionId: string, answer: string | boolean) => {
+    setUserAnswers(prev => ({
+      ...prev,
+      [questionId]: answer
+    }));
+  };
+
+  const submitQuiz = () => {
+    setShowResults(true);
+    let correct = 0;
+    let total = 0;
+
+    // Count MCQ answers
+    outputs.quiz?.mcqs?.forEach((q, i) => {
+      total++;
+      if (userAnswers[`mcq-${i}`] === q.answer) correct++;
+    });
+
+    // Count True/False answers
+    outputs.quiz?.trueFalse?.forEach((q, i) => {
+      total++;
+      if (userAnswers[`tf-${i}`] === q.answer) correct++;
+    });
+
+    toast({
+      title: "Quiz Submitted!",
+      description: `You got ${correct} out of ${total} correct!`,
+    });
   };
 
   const copyToClipboard = (text: string) => {
@@ -200,50 +268,33 @@ const Output = () => {
           {/* Quiz Tab */}
           <TabsContent value="quiz" className="space-y-4">
             {outputs.quiz ? (
-              <div className="space-y-4">
-                <Card className="bg-gradient-card">
-                  <CardHeader>
-                    <CardTitle>Multiple Choice Questions</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {outputs.quiz.mcqs?.map((q: any, i: number) => (
-                        <div key={i} className="p-4 border border-border rounded-lg">
-                          <p className="font-semibold mb-2">{i + 1}. {q.question}</p>
-                          <div className="space-y-1 ml-4">
-                            {q.options?.map((opt: string, j: number) => (
-                              <p key={j} className={opt === q.answer ? "text-success font-medium" : ""}>
-                                {String.fromCharCode(65 + j)}. {opt}
-                              </p>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+              <InteractiveQuiz
+                mcqs={outputs.quiz.mcqs || []}
+                trueFalse={outputs.quiz.trueFalse || []}
+                userAnswers={userAnswers}
+                showResults={showResults}
+                onAnswerChange={handleAnswerChange}
+                onSubmit={submitQuiz}
+              />
             ) : (
               <Card className="bg-gradient-card">
                 <CardContent className="p-12 text-center">
-                  <p className="mb-4 text-muted-foreground">No quizzes generated yet</p>
-                  <Button
-                    onClick={() => generateContent("quiz")}
-                    disabled={generating === "quiz"}
-                    className="bg-gradient-primary hover:opacity-90"
-                  >
-                    {generating === "quiz" ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Generating...
-                      </>
-                    ) : (
-                      <>
-                        <RefreshCw className="h-4 w-4 mr-2" />
-                        Generate Quizzes
-                      </>
-                    )}
-                  </Button>
+                  <p className="mb-4 text-muted-foreground">
+                    {generating === "quiz" ? "Generating quizzes from your PDF..." : "No quizzes generated yet"}
+                  </p>
+                  {generating !== "quiz" && (
+                    <Button
+                      onClick={() => generateContent("quiz")}
+                      disabled={generating !== null}
+                      className="bg-gradient-primary hover:opacity-90"
+                    >
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Generate Quizzes
+                    </Button>
+                  )}
+                  {generating === "quiz" && (
+                    <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+                  )}
                 </CardContent>
               </Card>
             )}
