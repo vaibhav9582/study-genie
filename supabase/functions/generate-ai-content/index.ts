@@ -46,7 +46,7 @@ serve(async (req) => {
     // Define prompts based on output type
     switch (outputType) {
       case 'summary':
-        systemPrompt = 'You are an expert at creating educational summaries. Generate clear, concise summaries from study materials.';
+        systemPrompt = 'You are an expert at creating educational summaries. Generate clear, concise summaries from study materials. IMPORTANT: Return ONLY valid JSON, no markdown formatting, no extra text.';
         userPrompt = `Create a summary from this text with:
 1. A short summary (2-3 sentences)
 2. A long detailed summary (5-7 sentences)
@@ -54,7 +54,7 @@ serve(async (req) => {
 
 Text: ${extractedText.slice(0, 3000)}
 
-Return JSON format:
+Return ONLY this JSON format (no markdown, no extra text):
 {
   "short": "...",
   "long": "...",
@@ -63,7 +63,7 @@ Return JSON format:
         break;
 
       case 'quiz':
-        systemPrompt = 'You are an expert at creating educational quizzes and assessments.';
+        systemPrompt = 'You are an expert at creating educational quizzes and assessments. IMPORTANT: Return ONLY valid JSON, no markdown formatting, no extra text.';
         userPrompt = `Generate a quiz from this text:
 1. 5 multiple choice questions with 4 options each and the correct answer
 2. 5 true/false questions with answers
@@ -71,7 +71,7 @@ Return JSON format:
 
 Text: ${extractedText.slice(0, 3000)}
 
-Return JSON format:
+Return ONLY this JSON format (no markdown, no extra text):
 {
   "mcqs": [{"question": "...", "options": ["a", "b", "c", "d"], "answer": "a"}],
   "trueFalse": [{"question": "...", "answer": true}],
@@ -80,7 +80,7 @@ Return JSON format:
         break;
 
       case 'questions':
-        systemPrompt = 'You are an expert at creating exam questions for students.';
+        systemPrompt = 'You are an expert at creating exam questions for students. IMPORTANT: Return ONLY valid JSON, no markdown formatting, no extra text.';
         userPrompt = `Generate important exam questions from this text:
 1. 5 questions worth 5 marks each
 2. 3 questions worth 10 marks each
@@ -88,7 +88,7 @@ Return JSON format:
 
 Text: ${extractedText.slice(0, 3000)}
 
-Return JSON format:
+Return ONLY this JSON format (no markdown, no extra text):
 {
   "five_mark": ["Q1...", "Q2..."],
   "ten_mark": ["Q1...", "Q2..."],
@@ -97,7 +97,7 @@ Return JSON format:
         break;
 
       case 'flashcards':
-        systemPrompt = 'You are an expert at creating educational flashcards for study and revision.';
+        systemPrompt = 'You are an expert at creating educational flashcards for study and revision. IMPORTANT: Return ONLY valid JSON, no markdown formatting, no extra text.';
         userPrompt = `Create 10 flashcards from this text. Each flashcard should have:
 - A term/concept name
 - A clear definition
@@ -105,7 +105,7 @@ Return JSON format:
 
 Text: ${extractedText.slice(0, 3000)}
 
-Return JSON format:
+Return ONLY this JSON format (no markdown, no extra text):
 {
   "flashcards": [
     {"term": "...", "definition": "...", "concept": "..."}
@@ -141,7 +141,18 @@ Return JSON format:
     }
 
     const aiData = await aiResponse.json();
-    const content = JSON.parse(aiData.choices[0].message.content);
+    console.log('AI response received, parsing content...');
+    
+    let content;
+    try {
+      const rawContent = aiData.choices[0].message.content;
+      console.log('Raw AI content (first 500 chars):', rawContent?.substring(0, 500));
+      content = JSON.parse(rawContent);
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError);
+      console.error('Failed to parse content:', aiData.choices[0].message.content);
+      throw new Error('Failed to parse AI response. The AI returned invalid JSON format.');
+    }
 
     // Store in database
     const { error: insertError } = await supabaseClient
