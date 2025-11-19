@@ -43,8 +43,8 @@ serve(async (req) => {
     const fileSizeMB = blobSize / (1024 * 1024);
     console.log(`PDF size: ${fileSizeMB.toFixed(2)} MB`);
 
-    const MAX_BYTES_ALLOWED = 15 * 1024 * 1024; // 15 MB absolute maximum
-    const OPTIMAL_SIZE = 8 * 1024 * 1024; // 8 MB optimal for best results
+    const MAX_BYTES_ALLOWED = 8 * 1024 * 1024; // 8 MB maximum supported
+    const OPTIMAL_SIZE = 8 * 1024 * 1024; // same as max for now
 
     if (blobSize === 0) {
       throw new Error('Downloaded empty PDF file');
@@ -62,14 +62,14 @@ serve(async (req) => {
         .eq('id', pdfId);
 
       return new Response(
-        JSON.stringify({ error: `PDF too large (${fileSizeMB.toFixed(2)} MB). Please upload a file under 15 MB for best results.` }),
+        JSON.stringify({ error: `PDF too large (${fileSizeMB.toFixed(2)} MB). Please upload a file under 8 MB.` }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     let extractedText: string | null = null;
 
-    // Read entire file into memory, but only send first 8MB to Gemini if larger
+    // Read entire file into memory (bounded by MAX_BYTES_ALLOWED), and send to Gemini
     const arrayBuffer = await fileData.arrayBuffer();
     const geminiBuffer = arrayBuffer.byteLength > OPTIMAL_SIZE
       ? arrayBuffer.slice(0, OPTIMAL_SIZE)
@@ -140,7 +140,7 @@ serve(async (req) => {
 
       return new Response(
         JSON.stringify({
-          error: 'Could not extract readable text from this PDF. Please upload a text-based PDF (not scanned images) under 15 MB.'
+          error: 'Could not extract readable text from this PDF. Please upload a text-based PDF (not scanned images) under 8 MB.'
         }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
