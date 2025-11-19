@@ -38,22 +38,41 @@ serve(async (req) => {
       throw downloadError;
     }
 
-    // Convert PDF to base64 for Gemini API
-    const arrayBuffer = await fileData.arrayBuffer();
-    const fileSizeMB = arrayBuffer.byteLength / (1024 * 1024);
+    // Check file size before processing
+    const blobSize = (fileData as Blob).size ?? 0;
+    const fileSizeMB = blobSize / (1024 * 1024);
     console.log(`PDF size: ${fileSizeMB.toFixed(2)} MB`);
+
+    const MAX_BYTES_FOR_GEMINI = 8 * 1024 * 1024; // 8 MB hard limit
+
+    if (blobSize === 0) {
+      throw new Error('Downloaded empty PDF file');
+    }
+
+    if (blobSize > MAX_BYTES_FOR_GEMINI) {
+      console.error('PDF too large for processing:', fileSizeMB, 'MB');
+
+      await supabaseClient
+        .from('uploaded_pdfs')
+        .update({
+          extracted_text: null,
+          upload_status: 'failed'
+        })
+        .eq('id', pdfId);
+
+      return new Response(
+        JSON.stringify({ error: `PDF too large (${fileSizeMB.toFixed(2)} MB). Please upload a file under 8 MB.` }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     let extractedText: string | null = null;
 
-    // Try Gemini API to extract text from PDF.
-    // For very large files, only send the first chunk to reduce memory usage.
-    const MAX_BYTES_FOR_GEMINI = 8 * 1024 * 1024; // 8 MB
-    const geminiBuffer = arrayBuffer.byteLength > MAX_BYTES_FOR_GEMINI
-      ? arrayBuffer.slice(0, MAX_BYTES_FOR_GEMINI)
-      : arrayBuffer;
+    // Read entire (bounded) file into memory and send to Gemini
+    const arrayBuffer = await fileData.arrayBuffer();
 
     try {
-      const base64Pdf = encodeBase64(new Uint8Array(geminiBuffer));
+      const base64Pdf = encodeBase64(new Uint8Array(arrayBuffer));
       console.log('Sending PDF to Gemini API for extraction...');
 
       // Use Gemini API to extract text from PDF
@@ -97,26 +116,23 @@ serve(async (req) => {
       console.error('Gemini request failed:', geminiError);
     }
 
+    if (!extractedText || extractedText.trim().length === 0) {
+      console.error('No readable text extracted from PDF');
 
-    // Fallback: basic text extraction if Gemini failed or file too large
-    if (!extractedText) {
-      console.log('Using basic text extraction...');
-      const decoder = new TextDecoder('utf-8', { fatal: false });
-      let textContent = decoder.decode(arrayBuffer);
+      await supabaseClient
+        .from('uploaded_pdfs')
+        .update({
+          extracted_text: null,
+          upload_status: 'failed'
+        })
+        .eq('id', pdfId);
 
-      textContent = textContent
-        .replace(/\0/g, '')
-        .replace(/[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]/g, '')
-        .trim();
-
-      // Take a reasonable sample from large files
-      const maxChars = 50000;
-      extractedText = textContent.slice(0, maxChars) ||
-        'Unable to extract readable text from PDF. The file may be image-based, corrupted, or too large.';
-      
-      if (textContent.length > maxChars) {
-        extractedText += `\n\n[Note: This is a large PDF. Only the first ${maxChars} characters were extracted for processing.]`;
-      }
+      return new Response(
+        JSON.stringify({
+          error: 'Could not extract readable text from this PDF. Please upload a text-based PDF (not scanned images) under 8 MB.'
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     console.log('Text extracted successfully, length:', extractedText.length);
