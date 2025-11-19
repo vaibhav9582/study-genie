@@ -28,19 +28,19 @@ const Upload = () => {
     }
 
     const fileSizeMB = selectedFile.size / (1024 * 1024);
-    if (fileSizeMB > 15) {
+    if (fileSizeMB > 8) {
       toast({
         title: "File too large",
-        description: `File size is ${fileSizeMB.toFixed(2)} MB. Please upload a file under 15 MB.`,
+        description: `File size is ${fileSizeMB.toFixed(2)} MB. Please upload a file under 8 MB.`,
         variant: "destructive",
       });
       return;
     }
 
-    if (fileSizeMB > 8) {
+    if (fileSizeMB > 6) {
       toast({
         title: "Large file detected",
-        description: `File is ${fileSizeMB.toFixed(2)} MB. Processing may be limited to first 8 MB for best results.`,
+        description: `File is ${fileSizeMB.toFixed(2)} MB. Processing may take a bit longer.`,
       });
     }
 
@@ -62,19 +62,19 @@ const Upload = () => {
     }
 
     const fileSizeMB = droppedFile.size / (1024 * 1024);
-    if (fileSizeMB > 15) {
+    if (fileSizeMB > 8) {
       toast({
         title: "File too large",
-        description: `File size is ${fileSizeMB.toFixed(2)} MB. Please upload a file under 15 MB.`,
+        description: `File size is ${fileSizeMB.toFixed(2)} MB. Please upload a file under 8 MB.`,
         variant: "destructive",
       });
       return;
     }
 
-    if (fileSizeMB > 8) {
+    if (fileSizeMB > 6) {
       toast({
         title: "Large file detected",
-        description: `File is ${fileSizeMB.toFixed(2)} MB. Processing may be limited to first 8 MB for best results.`,
+        description: `File is ${fileSizeMB.toFixed(2)} MB. Processing may take a bit longer.`,
       });
     }
 
@@ -221,7 +221,7 @@ const Upload = () => {
                       Drop your PDF here or click to browse
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      Best results: Under 8 MB • Maximum: 15 MB
+                      Maximum file size: 8 MB (text-based PDFs work best)
                     </p>
                   </div>
                 </div>
