@@ -43,13 +43,14 @@ serve(async (req) => {
     const fileSizeMB = blobSize / (1024 * 1024);
     console.log(`PDF size: ${fileSizeMB.toFixed(2)} MB`);
 
-    const MAX_BYTES_FOR_GEMINI = 8 * 1024 * 1024; // 8 MB hard limit
+    const MAX_BYTES_ALLOWED = 15 * 1024 * 1024; // 15 MB absolute maximum
+    const OPTIMAL_SIZE = 8 * 1024 * 1024; // 8 MB optimal for best results
 
     if (blobSize === 0) {
       throw new Error('Downloaded empty PDF file');
     }
 
-    if (blobSize > MAX_BYTES_FOR_GEMINI) {
+    if (blobSize > MAX_BYTES_ALLOWED) {
       console.error('PDF too large for processing:', fileSizeMB, 'MB');
 
       await supabaseClient
@@ -61,18 +62,23 @@ serve(async (req) => {
         .eq('id', pdfId);
 
       return new Response(
-        JSON.stringify({ error: `PDF too large (${fileSizeMB.toFixed(2)} MB). Please upload a file under 8 MB.` }),
+        JSON.stringify({ error: `PDF too large (${fileSizeMB.toFixed(2)} MB). Please upload a file under 15 MB for best results.` }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     let extractedText: string | null = null;
 
-    // Read entire (bounded) file into memory and send to Gemini
+    // Read entire file into memory, but only send first 8MB to Gemini if larger
     const arrayBuffer = await fileData.arrayBuffer();
+    const geminiBuffer = arrayBuffer.byteLength > OPTIMAL_SIZE
+      ? arrayBuffer.slice(0, OPTIMAL_SIZE)
+      : arrayBuffer;
+
+    console.log(`Processing ${geminiBuffer.byteLength} bytes (${(geminiBuffer.byteLength / (1024 * 1024)).toFixed(2)} MB) with Gemini...`);
 
     try {
-      const base64Pdf = encodeBase64(new Uint8Array(arrayBuffer));
+      const base64Pdf = encodeBase64(new Uint8Array(geminiBuffer));
       console.log('Sending PDF to Gemini API for extraction...');
 
       // Use Gemini API to extract text from PDF
@@ -108,6 +114,11 @@ serve(async (req) => {
           .map((p: any) => p.text ?? '')
           .join('\n')
           .trim();
+        
+        // Add note if we only processed part of the file
+        if (arrayBuffer.byteLength > OPTIMAL_SIZE) {
+          extractedText += '\n\n[Note: This is a large PDF. Only the first 8 MB was processed for text extraction.]';
+        }
       } else {
         const errorText = await geminiResponse.text();
         console.error('Gemini API error:', geminiResponse.status, errorText);
@@ -129,7 +140,7 @@ serve(async (req) => {
 
       return new Response(
         JSON.stringify({
-          error: 'Could not extract readable text from this PDF. Please upload a text-based PDF (not scanned images) under 8 MB.'
+          error: 'Could not extract readable text from this PDF. Please upload a text-based PDF (not scanned images) under 15 MB.'
         }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );

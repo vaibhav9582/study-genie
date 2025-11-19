@@ -16,29 +16,69 @@ const Upload = () => {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
-    if (selectedFile && selectedFile.type === "application/pdf") {
-      setFile(selectedFile);
-    } else {
+    if (!selectedFile) return;
+
+    if (selectedFile.type !== "application/pdf") {
       toast({
         title: "Invalid file",
         description: "Please select a PDF file",
         variant: "destructive",
       });
+      return;
     }
+
+    const fileSizeMB = selectedFile.size / (1024 * 1024);
+    if (fileSizeMB > 15) {
+      toast({
+        title: "File too large",
+        description: `File size is ${fileSizeMB.toFixed(2)} MB. Please upload a file under 15 MB.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (fileSizeMB > 8) {
+      toast({
+        title: "Large file detected",
+        description: `File is ${fileSizeMB.toFixed(2)} MB. Processing may be limited to first 8 MB for best results.`,
+      });
+    }
+
+    setFile(selectedFile);
   };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     const droppedFile = e.dataTransfer.files[0];
-    if (droppedFile && droppedFile.type === "application/pdf") {
-      setFile(droppedFile);
-    } else {
+    if (!droppedFile) return;
+
+    if (droppedFile.type !== "application/pdf") {
       toast({
         title: "Invalid file",
         description: "Please drop a PDF file",
         variant: "destructive",
       });
+      return;
     }
+
+    const fileSizeMB = droppedFile.size / (1024 * 1024);
+    if (fileSizeMB > 15) {
+      toast({
+        title: "File too large",
+        description: `File size is ${fileSizeMB.toFixed(2)} MB. Please upload a file under 15 MB.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (fileSizeMB > 8) {
+      toast({
+        title: "Large file detected",
+        description: `File is ${fileSizeMB.toFixed(2)} MB. Processing may be limited to first 8 MB for best results.`,
+      });
+    }
+
+    setFile(droppedFile);
   };
 
   const handleUpload = async () => {
@@ -181,7 +221,7 @@ const Upload = () => {
                       Drop your PDF here or click to browse
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      Maximum file size: 20MB
+                      Best results: Under 8 MB • Maximum: 15 MB
                     </p>
                   </div>
                 </div>
