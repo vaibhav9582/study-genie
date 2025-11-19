@@ -33,7 +33,12 @@ serve(async (req) => {
 
     if (pdfError) throw pdfError;
 
-    const extractedText = pdfData.extracted_text || 'Sample educational content about biology and cells.';
+    const extractedText = pdfData.extracted_text;
+
+    if (!extractedText || extractedText.trim().length === 0) {
+      throw new Error('No extracted text found for this PDF. Please wait for processing to finish or re-upload the file.');
+    }
+
 
     let systemPrompt = '';
     let userPrompt = '';
