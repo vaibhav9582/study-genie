@@ -45,56 +45,58 @@ serve(async (req) => {
 
     let extractedText: string | null = null;
 
-    // Only use Gemini API for smaller files (< 5MB) to avoid memory issues
-    if (fileSizeMB < 5) {
-      const base64Pdf = encodeBase64(new Uint8Array(arrayBuffer));
-      
+    // Try Gemini API to extract text from PDF.
+    // For very large files, only send the first chunk to reduce memory usage.
+    const MAX_BYTES_FOR_GEMINI = 8 * 1024 * 1024; // 8 MB
+    const geminiBuffer = arrayBuffer.byteLength > MAX_BYTES_FOR_GEMINI
+      ? arrayBuffer.slice(0, MAX_BYTES_FOR_GEMINI)
+      : arrayBuffer;
+
+    try {
+      const base64Pdf = encodeBase64(new Uint8Array(geminiBuffer));
       console.log('Sending PDF to Gemini API for extraction...');
 
-      try {
-        // Use Gemini API to extract text from PDF
-        const geminiResponse = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              contents: [{
-                parts: [
-                  {
-                    text: 'Extract all text content from this PDF document. Return only the extracted text, maintaining the original structure and formatting as much as possible.'
-                  },
-                  {
-                    inline_data: {
-                      mime_type: 'application/pdf',
-                      data: base64Pdf
-                    }
+      // Use Gemini API to extract text from PDF
+      const geminiResponse = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            contents: [{
+              parts: [
+                {
+                  text: 'Extract all text content from this PDF document. Return only the extracted text, maintaining the original structure and formatting as much as possible.'
+                },
+                {
+                  inline_data: {
+                    mime_type: 'application/pdf',
+                    data: base64Pdf
                   }
-                ]
-              }]
-            })
-          }
-        );
-
-        if (geminiResponse.ok) {
-          const geminiData = await geminiResponse.json();
-          const parts = geminiData.candidates?.[0]?.content?.parts ?? [];
-          extractedText = parts
-            .map((p: any) => p.text ?? '')
-            .join('\n')
-            .trim();
-        } else {
-          const errorText = await geminiResponse.text();
-          console.error('Gemini API error:', geminiResponse.status, errorText);
+                }
+              ]
+            }]
+          })
         }
-      } catch (geminiError) {
-        console.error('Gemini request failed:', geminiError);
+      );
+
+      if (geminiResponse.ok) {
+        const geminiData = await geminiResponse.json();
+        const parts = geminiData.candidates?.[0]?.content?.parts ?? [];
+        extractedText = parts
+          .map((p: any) => p.text ?? '')
+          .join('\n')
+          .trim();
+      } else {
+        const errorText = await geminiResponse.text();
+        console.error('Gemini API error:', geminiResponse.status, errorText);
       }
-    } else {
-      console.log(`PDF too large (${fileSizeMB.toFixed(2)} MB), skipping Gemini extraction...`);
+    } catch (geminiError) {
+      console.error('Gemini request failed:', geminiError);
     }
+
 
     // Fallback: basic text extraction if Gemini failed or file too large
     if (!extractedText) {
