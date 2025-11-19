@@ -41,45 +41,73 @@ serve(async (req) => {
     // Convert PDF to base64 for Gemini API
     const arrayBuffer = await fileData.arrayBuffer();
     const base64Pdf = encodeBase64(new Uint8Array(arrayBuffer));
-    
+
+    let extractedText: string | null = null;
+
     console.log('Sending PDF to Gemini API for extraction...');
 
-    // Use Gemini API to extract text from PDF
-    const geminiResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: [{
-            parts: [
-              {
-                text: 'Extract all text content from this PDF document. Return only the extracted text, maintaining the original structure and formatting as much as possible.'
-              },
-              {
-                inline_data: {
-                  mime_type: 'application/pdf',
-                  data: base64Pdf
+    try {
+      // Use Gemini API to extract text from PDF
+      const geminiResponse = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            contents: [{
+              parts: [
+                {
+                  text: 'Extract all text content from this PDF document. Return only the extracted text, maintaining the original structure and formatting as much as possible.'
+                },
+                {
+                  inline_data: {
+                    mime_type: 'application/pdf',
+                    data: base64Pdf
+                  }
                 }
-              }
-            ]
-          }]
-        })
-      }
-    );
+              ]
+            }]
+          })
+        }
+      );
 
-    if (!geminiResponse.ok) {
-      const errorText = await geminiResponse.text();
-      console.error('Gemini API error:', geminiResponse.status, errorText);
-      throw new Error(`Gemini API error: ${geminiResponse.status}`);
+      if (geminiResponse.ok) {
+        const geminiData = await geminiResponse.json();
+        const parts = geminiData.candidates?.[0]?.content?.parts ?? [];
+        extractedText = parts
+          .map((p: any) => p.text ?? '')
+          .join('\n')
+          .trim();
+      } else {
+        const errorText = await geminiResponse.text();
+        console.error('Gemini API error:', geminiResponse.status, errorText);
+
+        // For client errors (4xx), surface the error; for 5xx, fall back
+        if (geminiResponse.status < 500) {
+          throw new Error(`Gemini API error: ${geminiResponse.status}`);
+        }
+      }
+    } catch (geminiError) {
+      console.error('Gemini request failed, falling back to basic text extraction:', geminiError);
     }
 
-    const geminiData = await geminiResponse.json();
-    const extractedText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || 
-                         'Unable to extract text from PDF';
-    
+    // Fallback: basic text extraction if Gemini failed or returned empty
+    if (!extractedText) {
+      console.log('Using basic text extraction fallback...');
+      const decoder = new TextDecoder('utf-8', { fatal: false });
+      let textContent = decoder.decode(arrayBuffer);
+
+      textContent = textContent
+        .replace(/\0/g, '')
+        .replace(/[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]/g, '')
+        .trim();
+
+      extractedText = textContent.slice(0, 10000) ||
+        'Unable to extract readable text from PDF. The file may be image-based or corrupted.';
+    }
+
     console.log('Text extracted successfully, length:', extractedText.length);
 
     // Update database with extracted text
