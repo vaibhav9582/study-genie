@@ -40,62 +40,65 @@ serve(async (req) => {
 
     // Convert PDF to base64 for Gemini API
     const arrayBuffer = await fileData.arrayBuffer();
-    const base64Pdf = encodeBase64(new Uint8Array(arrayBuffer));
+    const fileSizeMB = arrayBuffer.byteLength / (1024 * 1024);
+    console.log(`PDF size: ${fileSizeMB.toFixed(2)} MB`);
 
     let extractedText: string | null = null;
 
-    console.log('Sending PDF to Gemini API for extraction...');
+    // Only use Gemini API for smaller files (< 5MB) to avoid memory issues
+    if (fileSizeMB < 5) {
+      const base64Pdf = encodeBase64(new Uint8Array(arrayBuffer));
+      
+      console.log('Sending PDF to Gemini API for extraction...');
 
-    try {
-      // Use Gemini API to extract text from PDF
-      const geminiResponse = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            contents: [{
-              parts: [
-                {
-                  text: 'Extract all text content from this PDF document. Return only the extracted text, maintaining the original structure and formatting as much as possible.'
-                },
-                {
-                  inline_data: {
-                    mime_type: 'application/pdf',
-                    data: base64Pdf
+      try {
+        // Use Gemini API to extract text from PDF
+        const geminiResponse = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              contents: [{
+                parts: [
+                  {
+                    text: 'Extract all text content from this PDF document. Return only the extracted text, maintaining the original structure and formatting as much as possible.'
+                  },
+                  {
+                    inline_data: {
+                      mime_type: 'application/pdf',
+                      data: base64Pdf
+                    }
                   }
-                }
-              ]
-            }]
-          })
-        }
-      );
+                ]
+              }]
+            })
+          }
+        );
 
-      if (geminiResponse.ok) {
-        const geminiData = await geminiResponse.json();
-        const parts = geminiData.candidates?.[0]?.content?.parts ?? [];
-        extractedText = parts
-          .map((p: any) => p.text ?? '')
-          .join('\n')
-          .trim();
-      } else {
-        const errorText = await geminiResponse.text();
-        console.error('Gemini API error:', geminiResponse.status, errorText);
-
-        // For client errors (4xx), surface the error; for 5xx, fall back
-        if (geminiResponse.status < 500) {
-          throw new Error(`Gemini API error: ${geminiResponse.status}`);
+        if (geminiResponse.ok) {
+          const geminiData = await geminiResponse.json();
+          const parts = geminiData.candidates?.[0]?.content?.parts ?? [];
+          extractedText = parts
+            .map((p: any) => p.text ?? '')
+            .join('\n')
+            .trim();
+        } else {
+          const errorText = await geminiResponse.text();
+          console.error('Gemini API error:', geminiResponse.status, errorText);
         }
+      } catch (geminiError) {
+        console.error('Gemini request failed:', geminiError);
       }
-    } catch (geminiError) {
-      console.error('Gemini request failed, falling back to basic text extraction:', geminiError);
+    } else {
+      console.log(`PDF too large (${fileSizeMB.toFixed(2)} MB), skipping Gemini extraction...`);
     }
 
-    // Fallback: basic text extraction if Gemini failed or returned empty
+    // Fallback: basic text extraction if Gemini failed or file too large
     if (!extractedText) {
-      console.log('Using basic text extraction fallback...');
+      console.log('Using basic text extraction...');
       const decoder = new TextDecoder('utf-8', { fatal: false });
       let textContent = decoder.decode(arrayBuffer);
 
@@ -104,8 +107,14 @@ serve(async (req) => {
         .replace(/[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]/g, '')
         .trim();
 
-      extractedText = textContent.slice(0, 10000) ||
-        'Unable to extract readable text from PDF. The file may be image-based or corrupted.';
+      // Take a reasonable sample from large files
+      const maxChars = 50000;
+      extractedText = textContent.slice(0, maxChars) ||
+        'Unable to extract readable text from PDF. The file may be image-based, corrupted, or too large.';
+      
+      if (textContent.length > maxChars) {
+        extractedText += `\n\n[Note: This is a large PDF. Only the first ${maxChars} characters were extracted for processing.]`;
+      }
     }
 
     console.log('Text extracted successfully, length:', extractedText.length);
