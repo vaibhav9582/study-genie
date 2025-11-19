@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { encodeBase64 } from "https://deno.land/std@0.224.0/encoding/base64.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -13,12 +14,19 @@ serve(async (req) => {
 
   try {
     const { pdfId, filePath } = await req.json();
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+    
+    if (!GEMINI_API_KEY) {
+      throw new Error('GEMINI_API_KEY not configured');
+    }
 
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
+    console.log('Downloading PDF from storage...');
+    
     // Download PDF from storage
     const { data: fileData, error: downloadError } = await supabaseClient
       .storage
@@ -30,26 +38,54 @@ serve(async (req) => {
       throw downloadError;
     }
 
-    // Convert PDF to text (simplified - in production, use a proper PDF parser)
-    // For now, we'll extract basic text representation
+    // Convert PDF to base64 for Gemini API
     const arrayBuffer = await fileData.arrayBuffer();
-    const textContent = new TextDecoder().decode(arrayBuffer);
+    const base64Pdf = encodeBase64(new Uint8Array(arrayBuffer));
     
-    // Clean the text: remove null bytes and non-printable characters that PostgreSQL can't store
-    const cleanedText = textContent
-      .replace(/\0/g, '') // Remove null bytes
-      .replace(/[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]/g, '') // Remove other control characters
-      .trim();
+    console.log('Sending PDF to Gemini API for extraction...');
+
+    // Use Gemini API to extract text from PDF
+    const geminiResponse = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              {
+                text: 'Extract all text content from this PDF document. Return only the extracted text, maintaining the original structure and formatting as much as possible.'
+              },
+              {
+                inline_data: {
+                  mime_type: 'application/pdf',
+                  data: base64Pdf
+                }
+              }
+            ]
+          }]
+        })
+      }
+    );
+
+    if (!geminiResponse.ok) {
+      const errorText = await geminiResponse.text();
+      console.error('Gemini API error:', geminiResponse.status, errorText);
+      throw new Error(`Gemini API error: ${geminiResponse.status}`);
+    }
+
+    const geminiData = await geminiResponse.json();
+    const extractedText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || 
+                         'Unable to extract text from PDF';
     
-    // Extract a sample of text (in production, use proper PDF parsing library)
-    // Use a fallback message if no readable text was extracted
-    const extractedText = cleanedText.slice(0, 5000) || 
-      'PDF uploaded successfully. This is sample educational content for AI processing.';
+    console.log('Text extracted successfully, length:', extractedText.length);
 
     // Update database with extracted text
     const { error: updateError } = await supabaseClient
       .from('uploaded_pdfs')
-      .update({
+      .update({ 
         extracted_text: extractedText,
         upload_status: 'completed'
       })
