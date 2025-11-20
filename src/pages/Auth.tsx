@@ -84,19 +84,22 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-hero flex items-center justify-center p-4">
-      <Card className="w-full max-w-md shadow-glow">
-        <CardHeader className="text-center space-y-2">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <Brain className="h-10 w-10 text-primary" />
-            <h1 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-              StudyGenie
-            </h1>
+    <div className="min-h-screen bg-gradient-hero flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNnptMCAzMGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNnoiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iLjA1Ii8+PC9nPjwvc3ZnPg==')] opacity-20"></div>
+      <Card className="w-full max-w-md shadow-glow relative z-10 border-2">
+        <CardHeader className="text-center space-y-3 pb-8">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <div className="h-14 w-14 rounded-2xl bg-gradient-primary flex items-center justify-center shadow-lg">
+              <Brain className="h-8 w-8 text-primary-foreground" />
+            </div>
           </div>
-          <CardTitle className="text-2xl">
+          <h1 className="text-4xl font-extrabold bg-gradient-primary bg-clip-text text-transparent tracking-tight">
+            StudyGenie
+          </h1>
+          <CardTitle className="text-3xl pt-2">
             {isSignUp ? "Create Account" : "Welcome Back"}
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-base">
             {isSignUp
               ? "Sign up to start using AI-powered learning"
               : "Log in to access your study materials"}
@@ -142,10 +145,10 @@ const Auth = () => {
             </div>
             <Button
               type="submit"
-              className="w-full bg-gradient-primary hover:opacity-90"
+              className="w-full bg-gradient-primary hover:opacity-90 transition-all shadow-md hover:shadow-lg text-base py-6 rounded-xl font-semibold"
               disabled={loading}
             >
-              {loading ? "Please wait..." : isSignUp ? "Sign Up" : "Log In"}
+              {loading ? "Please wait..." : isSignUp ? "Sign Up →" : "Log In →"}
             </Button>
           </form>
 

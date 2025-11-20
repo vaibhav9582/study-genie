@@ -179,37 +179,36 @@ const Output = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
-      <nav className="border-b border-border bg-background/95 backdrop-blur">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Brain className="h-8 w-8 text-primary" />
-            <h1 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+      <nav className="border-b-2 border-border bg-background/95 backdrop-blur shadow-sm">
+        <div className="container mx-auto px-4 py-5 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-gradient-primary flex items-center justify-center shadow-md">
+              <Brain className="h-6 w-6 text-primary-foreground" />
+            </div>
+            <h1 className="text-2xl font-extrabold bg-gradient-primary bg-clip-text text-transparent tracking-tight">
               StudyGenie
             </h1>
           </div>
-          <Button variant="ghost" onClick={() => navigate("/dashboard")}>
+          <Button variant="outline" onClick={() => navigate("/dashboard")} className="font-semibold border-2">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Dashboard
           </Button>
         </div>
       </nav>
 
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold mb-2">{pdf?.file_name}</h2>
-          <p className="text-muted-foreground">
-            AI-generated study materials from your PDF
-          </p>
+      <div className="container mx-auto px-4 py-12 max-w-6xl">
+        <div className="mb-12 text-center">
+          <h2 className="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight">{pdf?.file_name}</h2>
+          <p className="text-xl text-muted-foreground">AI-generated study materials ready for you</p>
         </div>
 
         {/* Tabs */}
         <Tabs defaultValue="summary" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="summary">Summary</TabsTrigger>
-            <TabsTrigger value="quiz">Quizzes</TabsTrigger>
-            <TabsTrigger value="questions">Questions</TabsTrigger>
-            <TabsTrigger value="flashcards">Flashcards</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4 mb-10 h-14 bg-muted/50 p-1.5 rounded-xl border-2">
+            <TabsTrigger value="summary" className="text-base font-semibold data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground rounded-lg transition-all">Summary</TabsTrigger>
+            <TabsTrigger value="quiz" className="text-base font-semibold data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground rounded-lg transition-all">Quiz</TabsTrigger>
+            <TabsTrigger value="questions" className="text-base font-semibold data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground rounded-lg transition-all">Questions</TabsTrigger>
+            <TabsTrigger value="flashcards" className="text-base font-semibold data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground rounded-lg transition-all">Flashcards</TabsTrigger>
           </TabsList>
 
           {/* Summary Tab */}
@@ -230,12 +229,20 @@ const Output = () => {
                     </div>
                   </CardContent>
                 </Card>
-                <Card className="bg-gradient-card">
+                <Card className="bg-gradient-card border-2">
                   <CardHeader>
-                    <CardTitle>Detailed Summary</CardTitle>
+                    <CardTitle className="text-2xl">Detailed Summary</CardTitle>
+                    <CardDescription>Comprehensive overview with headings and sections</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-foreground whitespace-pre-wrap">{outputs.summary.long}</p>
+                    <div className="prose prose-lg max-w-none">
+                      {outputs.summary.long.split('\n').map((paragraph, i) => {
+                        if (paragraph.startsWith('## ')) {
+                          return <h2 key={i} className="text-2xl font-bold mt-6 mb-3 text-primary">{paragraph.substring(3)}</h2>;
+                        }
+                        return paragraph.trim() ? <p key={i} className="mb-4 text-foreground leading-relaxed">{paragraph}</p> : null;
+                      })}
+                    </div>
                   </CardContent>
                 </Card>
               </div>
