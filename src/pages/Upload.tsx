@@ -156,35 +156,39 @@ const Upload = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
-      <nav className="border-b border-border bg-background/95 backdrop-blur">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Brain className="h-8 w-8 text-primary" />
-            <h1 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+      <nav className="border-b-2 border-border bg-background/95 backdrop-blur shadow-sm">
+        <div className="container mx-auto px-4 py-5 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-gradient-primary flex items-center justify-center shadow-md">
+              <Brain className="h-6 w-6 text-primary-foreground" />
+            </div>
+            <h1 className="text-2xl font-extrabold bg-gradient-primary bg-clip-text text-transparent tracking-tight">
               StudyGenie
             </h1>
           </div>
-          <Button variant="ghost" onClick={() => navigate("/dashboard")}>
+          <Button variant="outline" onClick={() => navigate("/dashboard")} className="font-semibold border-2">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Dashboard
           </Button>
         </div>
       </nav>
 
-      <div className="container mx-auto px-4 py-12 max-w-3xl">
-        <div className="text-center mb-8">
-          <h2 className="text-4xl font-bold mb-4">Upload Your Study Notes</h2>
-          <p className="text-xl text-muted-foreground">
-            Drop your PDF and let AI create summaries, quizzes, and more
+      <div className="container mx-auto px-4 py-16 max-w-4xl">
+        <div className="text-center mb-12">
+          <h2 className="text-5xl md:text-6xl font-extrabold mb-6 tracking-tight">Upload Your Study Material</h2>
+          <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+            Upload a PDF and let AI generate comprehensive study materials in seconds
           </p>
         </div>
 
-        <Card className="bg-gradient-card shadow-glow">
+        <Card className="shadow-glow border-2 bg-gradient-card">
           <CardContent className="p-8">
             <div
               onDrop={handleDrop}
               onDragOver={(e) => e.preventDefault()}
-              className="border-2 border-dashed border-border rounded-lg p-12 text-center hover:border-primary transition-colors cursor-pointer"
+              className={`border-3 border-dashed rounded-2xl p-16 text-center transition-all duration-300 cursor-pointer ${
+                file ? "border-primary bg-primary/10 shadow-inner" : "border-border hover:border-primary/50 hover:bg-muted/30"
+              }`}
               onClick={() => document.getElementById("file-input")?.click()}
             >
               <input
@@ -196,10 +200,12 @@ const Upload = () => {
               />
               {file ? (
                 <div className="space-y-4">
-                  <FileText className="h-16 w-16 mx-auto text-primary" />
+                  <div className="h-20 w-20 mx-auto mb-4 rounded-2xl bg-gradient-primary flex items-center justify-center shadow-lg">
+                    <FileText className="h-10 w-10 text-primary-foreground" />
+                  </div>
                   <div>
-                    <p className="text-lg font-semibold">{file.name}</p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-2xl font-bold mb-2">{file.name}</p>
+                    <p className="text-base text-muted-foreground font-medium">
                       {(file.size / (1024 * 1024)).toFixed(2)} MB
                     </p>
                   </div>
@@ -209,21 +215,22 @@ const Upload = () => {
                       e.stopPropagation();
                       setFile(null);
                     }}
+                    className="mt-4"
                   >
                     Choose Different File
                   </Button>
                 </div>
               ) : (
                 <div className="space-y-4">
-                  <UploadIcon className="h-16 w-16 mx-auto text-muted-foreground" />
-                  <div>
-                    <p className="text-lg font-semibold mb-2">
-                      Drop your PDF here or click to browse
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Maximum file size: 8 MB (text-based PDFs work best)
-                    </p>
+                  <div className="h-20 w-20 mx-auto mb-6 rounded-2xl bg-gradient-primary flex items-center justify-center shadow-lg">
+                    <UploadIcon className="h-10 w-10 text-primary-foreground" />
                   </div>
+                  <p className="text-2xl font-bold mb-3">
+                    Drop your PDF here or click to browse
+                  </p>
+                  <p className="text-base text-muted-foreground font-medium">
+                    Best results: Under 6 MB • Maximum: 8 MB
+                  </p>
                 </div>
               )}
             </div>

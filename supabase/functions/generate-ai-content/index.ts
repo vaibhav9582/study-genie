@@ -46,19 +46,25 @@ serve(async (req) => {
     // Define prompts based on output type
     switch (outputType) {
       case 'summary':
-        systemPrompt = 'You are an expert at creating educational summaries. Generate clear, concise summaries from study materials. IMPORTANT: Return ONLY valid JSON, no markdown formatting, no extra text.';
-        userPrompt = `Create a summary from this text with:
-1. A short summary (2-3 sentences)
-2. A long detailed summary (5-7 sentences)
-3. Key bullet points (5-7 points)
+        systemPrompt = 'You are an expert at creating comprehensive educational summaries. Generate detailed, well-structured summaries from study materials with proper headings and sections. IMPORTANT: Return ONLY valid JSON, no markdown formatting, no extra text.';
+        userPrompt = `Create a comprehensive summary from this text with:
+1. A short summary (2-3 sentences) - brief overview
+2. A long detailed summary (at least 700 words) with proper structure:
+   - Start with an introduction paragraph
+   - Use clear section headings (like "Key Concepts", "Main Topics", "Important Details", etc.)
+   - Include detailed explanations of all major concepts
+   - Add context and connections between ideas
+   - End with a conclusion paragraph
+   - Format: Use "## " for section headings in the text
+3. Key bullet points (7-10 important points)
 
-Text: ${extractedText.slice(0, 3000)}
+Text: ${extractedText.slice(0, 8000)}
 
 Return ONLY this JSON format (no markdown, no extra text):
 {
-  "short": "...",
-  "long": "...",
-  "bullets": ["...", "..."]
+  "short": "Brief 2-3 sentence overview",
+  "long": "## Introduction\n\n[Introduction paragraph]\n\n## [Section 1 Heading]\n\n[Detailed content for section 1 - multiple paragraphs]\n\n## [Section 2 Heading]\n\n[Detailed content for section 2 - multiple paragraphs]\n\n[Continue with more sections as needed to reach 700+ words]\n\n## Conclusion\n\n[Conclusion paragraph]",
+  "bullets": ["Point 1", "Point 2", "..."]
 }`;
         break;
 
