@@ -3,8 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Brain, Upload, FileText, LogOut, Trash2, TrendingUp, BookOpen, Zap, Clock } from "lucide-react";
+import { Upload, FileText, Trash2, TrendingUp, BookOpen, Zap, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Navigation } from "@/components/Navigation";
 import type { User } from "@supabase/supabase-js";
 
 interface PDF {
@@ -121,10 +122,6 @@ const Dashboard = () => {
     }
   };
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/");
-  };
 
   const deletePDF = async (pdfId: string) => {
     try {
@@ -157,23 +154,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Navigation */}
-      <nav className="border-b-2 border-border bg-background/95 backdrop-blur shadow-sm">
-        <div className="container mx-auto px-4 py-5 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-primary flex items-center justify-center shadow-md">
-              <Brain className="h-6 w-6 text-primary-foreground" />
-            </div>
-            <h1 className="text-2xl font-extrabold bg-gradient-primary bg-clip-text text-transparent tracking-tight">
-              StudyGenie
-            </h1>
-          </div>
-          <Button variant="outline" onClick={handleLogout} className="font-semibold border-2">
-            <LogOut className="h-4 w-4 mr-2" />
-            Logout
-          </Button>
-        </div>
-      </nav>
+      <Navigation />
 
       <div className="container mx-auto px-4 py-12">
         {/* Welcome Section */}
