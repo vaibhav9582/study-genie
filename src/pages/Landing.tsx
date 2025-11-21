@@ -1,35 +1,15 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { FileText, Brain, Zap, Book, CheckCircle } from "lucide-react";
+import { FileText, Zap, Book, CheckCircle } from "lucide-react";
+import { Navigation } from "@/components/Navigation";
 
 const Landing = () => {
   const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Navigation */}
-      <nav className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Brain className="h-8 w-8 text-primary" />
-            <h1 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-              StudyGenie
-            </h1>
-          </div>
-          <div className="flex gap-3">
-            <Button variant="ghost" onClick={() => navigate("/auth")}>
-              Login
-            </Button>
-            <Button 
-              className="bg-gradient-primary hover:opacity-90 transition-opacity"
-              onClick={() => navigate("/auth?mode=signup")}
-            >
-              Get Started
-            </Button>
-          </div>
-        </div>
-      </nav>
+      <Navigation />
 
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-24 md:py-32 text-center relative overflow-hidden">
@@ -86,7 +66,7 @@ const Landing = () => {
               description: "Get short and detailed summaries with key bullet points and proper headings"
             },
             {
-              icon: <Brain className="h-10 w-10" />,
+              icon: <CheckCircle className="h-10 w-10" />,
               title: "Auto Quizzes",
               description: "MCQs, True/False, and short questions generated instantly for practice"
             },

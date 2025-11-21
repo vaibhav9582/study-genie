@@ -4,9 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Brain, ArrowLeft, Copy, Download, RefreshCw, Loader2 } from "lucide-react";
+import { Copy, Download, RefreshCw, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { InteractiveQuiz } from "@/components/InteractiveQuiz";
+import { Navigation } from "@/components/Navigation";
 
 interface AIOutput {
   summary?: { short: string; long: string; bullets: string[] };
@@ -93,7 +94,7 @@ const Output = () => {
   };
 
   const generateContent = async (type: string) => {
-    if (generating) return; // Prevent multiple simultaneous generations
+    if (generating) return;
     
     setGenerating(type);
     try {
@@ -165,7 +166,10 @@ const Output = () => {
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    toast({ title: "Copied!", description: "Content copied to clipboard" });
+    toast({ 
+      title: "Copied!", 
+      description: "Content copied to clipboard" 
+    });
   };
 
   if (loading) {
@@ -178,23 +182,7 @@ const Output = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Navigation */}
-      <nav className="border-b-2 border-border bg-background/95 backdrop-blur shadow-sm">
-        <div className="container mx-auto px-4 py-5 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-primary flex items-center justify-center shadow-md">
-              <Brain className="h-6 w-6 text-primary-foreground" />
-            </div>
-            <h1 className="text-2xl font-extrabold bg-gradient-primary bg-clip-text text-transparent tracking-tight">
-              StudyGenie
-            </h1>
-          </div>
-          <Button variant="outline" onClick={() => navigate("/dashboard")} className="font-semibold border-2">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Dashboard
-          </Button>
-        </div>
-      </nav>
+      <Navigation />
 
       <div className="container mx-auto px-4 py-12 max-w-6xl">
         <div className="mb-12 text-center">
