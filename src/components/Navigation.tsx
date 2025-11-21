@@ -1,14 +1,13 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { Brain, Home, Upload, LayoutDashboard, LogOut } from "lucide-react";
+import { Brain, Home, Upload, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
+import { UserMenu } from "./UserMenu";
 
 export const Navigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { toast } = useToast();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
@@ -22,15 +21,6 @@ export const Navigation = () => {
 
     return () => subscription.unsubscribe();
   }, []);
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    toast({
-      title: "Logged out successfully",
-      description: "You have been logged out of your account.",
-    });
-    navigate("/");
-  };
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -92,14 +82,7 @@ export const Navigation = () => {
               </Button>
             </>
           ) : (
-            <Button
-              variant="outline"
-              onClick={handleLogout}
-              className="font-semibold border-2"
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              Logout
-            </Button>
+            <UserMenu />
           )}
         </div>
       </div>
