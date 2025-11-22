@@ -1,14 +1,16 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { Brain, Home, Upload, LayoutDashboard } from "lucide-react";
+import { Brain, Home, Upload, LayoutDashboard, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import { UserMenu } from "./UserMenu";
+import { useTheme } from "next-themes";
 
 export const Navigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -23,6 +25,10 @@ export const Navigation = () => {
   }, []);
 
   const isActive = (path: string) => location.pathname === path;
+
+  const toggleTheme = () => {
+    setTheme(theme === "dark" ? "light" : "dark");
+  };
 
   return (
     <nav className="border-b-2 border-border bg-background/95 backdrop-blur shadow-sm sticky top-0 z-50">
@@ -65,6 +71,18 @@ export const Navigation = () => {
         <div className="flex items-center gap-3">
           {!isAuthenticated ? (
             <>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleTheme}
+                className="rounded-full"
+              >
+                {theme === "dark" ? (
+                  <Sun className="h-5 w-5" />
+                ) : (
+                  <Moon className="h-5 w-5" />
+                )}
+              </Button>
               <Button
                 variant="ghost"
                 onClick={() => navigate("/")}
