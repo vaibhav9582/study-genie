@@ -17,9 +17,10 @@ import { User, Upload } from "lucide-react";
 interface ProfileDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onProfileUpdate?: () => void;
 }
 
-export const ProfileDialog = ({ open, onOpenChange }: ProfileDialogProps) => {
+export const ProfileDialog = ({ open, onOpenChange, onProfileUpdate }: ProfileDialogProps) => {
   const [fullName, setFullName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -41,9 +42,9 @@ export const ProfileDialog = ({ open, onOpenChange }: ProfileDialogProps) => {
         .from("profiles")
         .select("*")
         .eq("id", session.user.id)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== "PGRST116") throw error;
+      if (error) throw error;
 
       if (data) {
         setFullName(data.full_name || "");
@@ -105,6 +106,8 @@ export const ProfileDialog = ({ open, onOpenChange }: ProfileDialogProps) => {
         title: "Avatar uploaded",
         description: "Your profile picture has been updated",
       });
+      
+      onProfileUpdate?.();
     } catch (error: any) {
       toast({
         title: "Upload failed",
@@ -140,6 +143,7 @@ export const ProfileDialog = ({ open, onOpenChange }: ProfileDialogProps) => {
         description: "Your profile has been saved successfully",
       });
 
+      onProfileUpdate?.();
       onOpenChange(false);
     } catch (error: any) {
       toast({
