@@ -77,7 +77,10 @@ export const UserMenu = () => {
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="relative h-10 w-10 rounded-full">
             <Avatar className="h-10 w-10">
-              <AvatarImage src={profile?.avatar_url} alt={profile?.full_name} />
+              <AvatarImage 
+                src={profile?.avatar_url ? `${profile.avatar_url}?t=${Date.now()}` : undefined} 
+                alt={profile?.full_name} 
+              />
               <AvatarFallback className="bg-gradient-primary text-primary-foreground">
                 {getInitials()}
               </AvatarFallback>

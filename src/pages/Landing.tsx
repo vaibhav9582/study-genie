@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useNavigate } from "react-router-dom";
 import { FileText, Zap, Book, CheckCircle } from "lucide-react";
 import { Navigation } from "@/components/Navigation";
+import dashboardPreview from "@/assets/dashboard-preview.png";
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -44,6 +45,38 @@ const Landing = () => {
               className="text-lg px-10 py-7 rounded-xl font-semibold border-2 hover:bg-muted/50"
             >
               Watch Demo
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Dashboard Preview Section */}
+      <section className="container mx-auto px-4 py-24">
+        <div className="text-center mb-16">
+          <h2 className="text-5xl md:text-6xl font-extrabold mb-6 tracking-tight">
+            Your Personal Learning Dashboard
+          </h2>
+          <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto">
+            Get a complete overview of your study progress with powerful analytics and insights
+          </p>
+        </div>
+        
+        <div className="max-w-6xl mx-auto">
+          <div className="relative rounded-2xl overflow-hidden shadow-2xl border-4 border-border bg-gradient-card hover:shadow-glow transition-all duration-500 group">
+            <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-5 transition-opacity"></div>
+            <img 
+              src={dashboardPreview} 
+              alt="StudyGenie Dashboard Preview" 
+              className="w-full h-auto transform group-hover:scale-[1.02] transition-transform duration-500"
+            />
+          </div>
+          <div className="mt-10 text-center">
+            <Button 
+              size="lg" 
+              className="bg-gradient-primary hover:opacity-90 transition-all shadow-md text-lg px-10 py-6 rounded-xl font-semibold"
+              onClick={() => navigate("/auth?mode=signup")}
+            >
+              Try Dashboard for Free →
             </Button>
           </div>
         </div>
