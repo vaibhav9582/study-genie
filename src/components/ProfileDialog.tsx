@@ -48,7 +48,9 @@ export const ProfileDialog = ({ open, onOpenChange, onProfileUpdate }: ProfileDi
 
       if (data) {
         setFullName(data.full_name || "");
-        setAvatarUrl(data.avatar_url || "");
+        // Add cache buster to avatar URL to force reload
+        const avatarUrl = data.avatar_url;
+        setAvatarUrl(avatarUrl ? `${avatarUrl}?t=${new Date().getTime()}` : "");
       }
     } catch (error: any) {
       console.error("Error loading profile:", error);
@@ -95,12 +97,14 @@ export const ProfileDialog = ({ open, onOpenChange, onProfileUpdate }: ProfileDi
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
+      // Get public URL with cache buster
+      const timestamp = new Date().getTime();
       const { data: { publicUrl } } = supabase.storage
         .from("avatars")
         .getPublicUrl(fileName);
 
-      setAvatarUrl(publicUrl);
+      const urlWithCacheBuster = `${publicUrl}?t=${timestamp}`;
+      setAvatarUrl(urlWithCacheBuster);
 
       toast({
         title: "Avatar uploaded",
