@@ -134,8 +134,8 @@ const Dashboard = () => {
 
       setPdfs(pdfs.filter((pdf) => pdf.id !== pdfId));
       toast({
-        title: "PDF deleted",
-        description: "Your file has been removed.",
+        title: "PDF Deleted! 🗑️",
+        description: "Your file has been permanently removed.",
       });
     } catch (error: any) {
       toast({

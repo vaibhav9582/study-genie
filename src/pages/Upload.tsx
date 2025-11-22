@@ -92,6 +92,11 @@ const Upload = () => {
     }
 
     setFile(fileToUse);
+    
+    toast({
+      title: "File selected",
+      description: `${fileToUse.name} is ready to upload`,
+    });
   };
 
   const handleDrop = async (e: React.DragEvent) => {
@@ -144,6 +149,11 @@ const Upload = () => {
     }
 
     setFile(fileToUse);
+    
+    toast({
+      title: "File selected",
+      description: `${fileToUse.name} is ready to upload`,
+    });
   };
 
   const handleUpload = async () => {
@@ -199,8 +209,8 @@ const Upload = () => {
       setProgress(100);
 
       toast({
-        title: "Success!",
-        description: "Your PDF is being processed by AI",
+        title: "Upload successful! 🎉",
+        description: "AI is now generating your study materials. Redirecting...",
       });
 
       setTimeout(() => {
