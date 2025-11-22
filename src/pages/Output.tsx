@@ -70,8 +70,8 @@ const Output = () => {
       // Auto-generate all content if none exists
       if (!aiData || aiData.length === 0) {
         toast({
-          title: "Generating AI content...",
-          description: "Please wait while we create your study materials",
+          title: "AI Processing Started 🤖",
+          description: "Generating summaries, quizzes, questions, and flashcards...",
         });
         
         // Generate all content types
@@ -81,6 +81,11 @@ const Output = () => {
           generateContent("questions"),
           generateContent("flashcards")
         ]);
+        
+        toast({
+          title: "All study materials ready! ✨",
+          description: "Your AI-generated content is now available",
+        });
       }
     } catch (error: any) {
       toast({
@@ -104,9 +109,16 @@ const Output = () => {
 
       if (error) throw error;
 
+      const typeNames = {
+        summary: "Summary",
+        quiz: "Quiz",
+        questions: "Important Questions",
+        flashcards: "Flashcards"
+      };
+
       toast({
-        title: "Generated!",
-        description: `${type} created successfully`,
+        title: `${typeNames[type as keyof typeof typeNames]} Generated! ✅`,
+        description: "Your AI-generated content is ready to view",
       });
 
       // Reload just this content type
@@ -158,17 +170,20 @@ const Output = () => {
       if (userAnswers[`tf-${i}`] === q.answer) correct++;
     });
 
+    const percentage = Math.round((correct / total) * 100);
+    const emoji = percentage >= 80 ? "🎉" : percentage >= 60 ? "👍" : "💪";
+    
     toast({
-      title: "Quiz Submitted!",
-      description: `You got ${correct} out of ${total} correct!`,
+      title: `Quiz Submitted! ${emoji}`,
+      description: `You scored ${correct} out of ${total} (${percentage}%)`,
     });
   };
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast({ 
-      title: "Copied!", 
-      description: "Content copied to clipboard" 
+      title: "Copied to clipboard! 📋", 
+      description: "Content is ready to paste anywhere" 
     });
   };
 

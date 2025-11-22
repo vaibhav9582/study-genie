@@ -56,8 +56,8 @@ const Auth = () => {
         if (error) throw error;
 
         toast({
-          title: "Success!",
-          description: "Account created successfully. You can now log in.",
+          title: "Account Created! 🎉",
+          description: "Welcome to StudyGenie! You're being logged in...",
         });
       } else {
         const { error } = await supabase.auth.signInWithPassword({
@@ -68,8 +68,8 @@ const Auth = () => {
         if (error) throw error;
 
         toast({
-          title: "Welcome back!",
-          description: "You've successfully logged in.",
+          title: "Welcome back! 👋",
+          description: "Successfully logged in. Redirecting to dashboard...",
         });
       }
     } catch (error: any) {
