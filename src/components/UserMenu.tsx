@@ -36,7 +36,7 @@ export const UserMenu = () => {
         .from("profiles")
         .select("*")
         .eq("id", session.user.id)
-        .single();
+        .maybeSingle();
 
       if (data) {
         setProfile(data);
@@ -121,7 +121,11 @@ export const UserMenu = () => {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <ProfileDialog open={profileOpen} onOpenChange={setProfileOpen} />
+      <ProfileDialog 
+        open={profileOpen} 
+        onOpenChange={setProfileOpen}
+        onProfileUpdate={loadProfile}
+      />
     </>
   );
 };
