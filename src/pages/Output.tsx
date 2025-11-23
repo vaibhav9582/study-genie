@@ -8,6 +8,7 @@ import { Copy, Download, RefreshCw, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { InteractiveQuiz } from "@/components/InteractiveQuiz";
 import { Navigation } from "@/components/Navigation";
+import confetti from "canvas-confetti";
 
 interface AIOutput {
   summary?: { short: string; long: string; bullets: string[] };
@@ -173,10 +174,50 @@ const Output = () => {
     const percentage = Math.round((correct / total) * 100);
     const emoji = percentage >= 80 ? "🎉" : percentage >= 60 ? "👍" : "💪";
     
+    // Trigger confetti for high scores
+    if (percentage >= 80) {
+      triggerCelebration();
+    }
+    
     toast({
       title: `Quiz Submitted! ${emoji}`,
       description: `You scored ${correct} out of ${total} (${percentage}%)`,
     });
+  };
+
+  const triggerCelebration = () => {
+    // Center confetti burst
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 }
+    });
+
+    // Side confetti bursts
+    setTimeout(() => {
+      confetti({
+        particleCount: 50,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0 }
+      });
+      confetti({
+        particleCount: 50,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1 }
+      });
+    }, 250);
+
+    // Final burst
+    setTimeout(() => {
+      confetti({
+        particleCount: 80,
+        spread: 100,
+        origin: { y: 0.7 },
+        colors: ['#FFD700', '#FFA500', '#FF69B4', '#87CEEB']
+      });
+    }, 500);
   };
 
   const copyToClipboard = (text: string) => {
