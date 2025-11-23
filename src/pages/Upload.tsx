@@ -4,10 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Upload as UploadIcon, FileText } from "lucide-react";
+import { Upload as UploadIcon, FileText, Sparkles, Brain, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Navigation } from "@/components/Navigation";
 import { PDFDocument } from "pdf-lib";
+import { motion } from "framer-motion";
 
 const Upload = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -260,13 +261,30 @@ const Upload = () => {
               />
               
               {compressing && (
-                <div className="space-y-4">
-                  <div className="animate-spin h-16 w-16 border-4 border-primary border-t-transparent rounded-full mx-auto" />
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="space-y-4"
+                >
+                  <div className="relative">
+                    <motion.div 
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                      className="h-16 w-16 border-4 border-primary border-t-transparent rounded-full mx-auto"
+                    />
+                    <motion.div
+                      animate={{ scale: [1, 1.2, 1] }}
+                      transition={{ duration: 1.5, repeat: Infinity }}
+                      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                    >
+                      <FileText className="h-6 w-6 text-primary" />
+                    </motion.div>
+                  </div>
                   <p className="text-xl font-bold">Compressing PDF...</p>
                   <p className="text-sm text-muted-foreground">
                     Please wait while we optimize your file
                   </p>
-                </div>
+                </motion.div>
               )}
 
               {!compressing && file && (
@@ -309,20 +327,70 @@ const Upload = () => {
             </div>
 
             {uploading && (
-              <div className="mt-6 space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>Processing...</span>
-                  <span>{progress}%</span>
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-6 space-y-4"
+              >
+                <div className="relative p-6 bg-gradient-primary/10 rounded-xl border-2 border-primary/20">
+                  <div className="flex items-center justify-center mb-4">
+                    <motion.div
+                      animate={{ 
+                        scale: [1, 1.2, 1],
+                        rotate: [0, 180, 360]
+                      }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                      className="mr-3"
+                    >
+                      <Brain className="h-8 w-8 text-primary" />
+                    </motion.div>
+                    <motion.div
+                      animate={{ opacity: [0.5, 1, 0.5] }}
+                      transition={{ duration: 1.5, repeat: Infinity }}
+                    >
+                      <Sparkles className="h-6 w-6 text-primary" />
+                    </motion.div>
+                    <motion.div
+                      animate={{ 
+                        x: [0, 10, 0],
+                        opacity: [1, 0.5, 1]
+                      }}
+                      transition={{ duration: 1, repeat: Infinity }}
+                      className="ml-3"
+                    >
+                      <Zap className="h-6 w-6 text-primary" />
+                    </motion.div>
+                  </div>
+                  
+                  <p className="text-xl font-bold text-center mb-3">
+                    {progress < 50
+                      ? "Uploading your file..."
+                      : progress < 80
+                      ? "Extracting knowledge..."
+                      : "AI is generating magic..."}
+                  </p>
+                  
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm font-medium">
+                      <span>Progress</span>
+                      <span>{progress}%</span>
+                    </div>
+                    <Progress value={progress} className="h-2" />
+                  </div>
+                  
+                  <motion.p 
+                    key={progress}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="text-sm text-muted-foreground text-center mt-3"
+                  >
+                    {progress < 30 && "Uploading to secure storage..."}
+                    {progress >= 30 && progress < 60 && "Analyzing PDF structure..."}
+                    {progress >= 60 && progress < 80 && "Extracting text content..."}
+                    {progress >= 80 && "Creating your study materials..."}
+                  </motion.p>
                 </div>
-                <Progress value={progress} className="h-2" />
-                <p className="text-sm text-muted-foreground text-center">
-                  {progress < 50
-                    ? "Uploading file..."
-                    : progress < 80
-                    ? "Extracting text..."
-                    : "Generating AI content..."}
-                </p>
-              </div>
+              </motion.div>
             )}
 
             {file && !uploading && !compressing && (

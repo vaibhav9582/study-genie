@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { Brain, Home, Upload, LayoutDashboard, Moon, Sun } from "lucide-react";
+import { Brain, Upload, LayoutDashboard, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
@@ -82,14 +82,6 @@ export const Navigation = () => {
                 ) : (
                   <Moon className="h-5 w-5" />
                 )}
-              </Button>
-              <Button
-                variant="ghost"
-                onClick={() => navigate("/")}
-                className="font-semibold"
-              >
-                <Home className="h-4 w-4 mr-2" />
-                Home
               </Button>
               <Button
                 variant="outline"
