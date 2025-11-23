@@ -13,7 +13,7 @@ import confetti from "canvas-confetti";
 interface AIOutput {
   summary?: { short: string; long: string; bullets: string[] };
   quiz?: { mcqs: any[]; trueFalse: any[]; shortQuestions: any[] };
-  questions?: { five_mark: string[]; ten_mark: string[]; fifteen_mark: string[] };
+  questions?: { five_mark: string[]; seven_mark: string[]; ten_mark: string[]; fifteen_mark: string[] };
   flashcards?: { term: string; definition: string; concept: string }[];
 }
 
@@ -362,7 +362,46 @@ const Output = () => {
                   <CardContent>
                     <ol className="list-decimal list-inside space-y-2">
                       {outputs.questions.five_mark?.map((q: string, i: number) => (
-                        <li key={i}>{q}</li>
+                        <li key={i} className="text-foreground">{q}</li>
+                      ))}
+                    </ol>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-gradient-card">
+                  <CardHeader>
+                    <CardTitle>7 Mark Questions</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ol className="list-decimal list-inside space-y-2">
+                      {outputs.questions.seven_mark?.map((q: string, i: number) => (
+                        <li key={i} className="text-foreground">{q}</li>
+                      ))}
+                    </ol>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-gradient-card">
+                  <CardHeader>
+                    <CardTitle>10 Mark Questions</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ol className="list-decimal list-inside space-y-2">
+                      {outputs.questions.ten_mark?.map((q: string, i: number) => (
+                        <li key={i} className="text-foreground">{q}</li>
+                      ))}
+                    </ol>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-gradient-card">
+                  <CardHeader>
+                    <CardTitle>15 Mark Questions</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ol className="list-decimal list-inside space-y-2">
+                      {outputs.questions.fifteen_mark?.map((q: string, i: number) => (
+                        <li key={i} className="text-foreground">{q}</li>
                       ))}
                     </ol>
                   </CardContent>
