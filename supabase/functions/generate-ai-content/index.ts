@@ -89,16 +89,14 @@ Return ONLY this JSON format (no markdown, no extra text):
         systemPrompt = 'You are an expert at creating exam questions for students. IMPORTANT: Return ONLY valid JSON, no markdown formatting, no extra text.';
         userPrompt = `Generate important exam questions from this text:
 1. 5 questions worth 5 marks each
-2. 3 questions worth 7 marks each
-3. 3 questions worth 10 marks each
-4. 2 questions worth 15 marks each
+2. 3 questions worth 10 marks each
+3. 2 questions worth 15 marks each
 
 Text: ${extractedText.slice(0, 3000)}
 
 Return ONLY this JSON format (no markdown, no extra text):
 {
   "five_mark": ["Q1...", "Q2..."],
-  "seven_mark": ["Q1...", "Q2..."],
   "ten_mark": ["Q1...", "Q2..."],
   "fifteen_mark": ["Q1...", "Q2..."]
 }`;
