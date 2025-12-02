@@ -13,8 +13,9 @@ const Landing = () => {
       <Navigation />
 
       {/* Hero Section */}
-      <section className="container mx-auto px-4 py-24 md:py-32 text-center relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-hero opacity-5 blur-3xl"></div>
+      <section className="relative py-24 md:py-32 text-center overflow-hidden">
+        <div className="absolute inset-0 w-screen left-1/2 -translate-x-1/2 bg-gradient-hero opacity-10 blur-3xl"></div>
+        <div className="container mx-auto px-4">
         <div className="max-w-5xl mx-auto space-y-10 relative z-10">
           <div className="inline-block animate-fade-in">
             <span className="px-5 py-2.5 bg-gradient-primary/10 text-primary rounded-full text-sm font-semibold border border-primary/20 shadow-sm">
@@ -47,6 +48,7 @@ const Landing = () => {
               Watch Demo
             </Button>
           </div>
+        </div>
         </div>
       </section>
 
