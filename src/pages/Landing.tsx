@@ -12,9 +12,9 @@ const Landing = () => {
     <div className="min-h-screen bg-background relative overflow-hidden">
       {/* Full page gradient background */}
       <div className="fixed inset-0 w-full h-full pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-primary/20 rounded-full blur-[120px]"></div>
-        <div className="absolute top-1/3 right-1/4 w-[500px] h-[500px] bg-accent/15 rounded-full blur-[100px]"></div>
-        <div className="absolute bottom-1/4 left-1/3 w-[400px] h-[400px] bg-primary/10 rounded-full blur-[80px]"></div>
+        <div className="absolute -top-20 left-1/4 w-[700px] h-[700px] bg-[hsl(265,80%,60%)]/25 rounded-full blur-[150px]"></div>
+        <div className="absolute top-1/3 -right-20 w-[600px] h-[600px] bg-[hsl(200,90%,55%)]/20 rounded-full blur-[130px]"></div>
+        <div className="absolute bottom-0 left-1/3 w-[500px] h-[500px] bg-[hsl(330,80%,60%)]/15 rounded-full blur-[120px]"></div>
       </div>
       
       <div className="relative z-10">
