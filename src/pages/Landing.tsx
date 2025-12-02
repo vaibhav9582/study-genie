@@ -9,12 +9,15 @@ const Landing = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation />
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      {/* Full page gradient background */}
+      <div className="fixed inset-0 w-full h-full bg-gradient-hero opacity-10 blur-3xl pointer-events-none"></div>
+      
+      <div className="relative z-10">
+        <Navigation />
 
-      {/* Hero Section */}
-      <section className="relative py-24 md:py-32 text-center overflow-hidden">
-        <div className="absolute inset-0 w-screen left-1/2 -translate-x-1/2 bg-gradient-hero opacity-10 blur-3xl"></div>
+        {/* Hero Section */}
+        <section className="relative py-24 md:py-32 text-center overflow-hidden">
         <div className="container mx-auto px-4">
         <div className="max-w-5xl mx-auto space-y-10 relative z-10">
           <div className="inline-block animate-fade-in">
@@ -154,6 +157,7 @@ const Landing = () => {
           <p>© 2025 StudyGenie. Powered by AI.</p>
         </div>
       </footer>
+      </div>
     </div>
   );
 };
